@@ -33,6 +33,9 @@ import java.util.Map;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.DeadObjectException;
@@ -325,7 +328,7 @@ public class IdlPeopleInterface extends Service {
     @Override
     public final synchronized IBinder onBind(final Intent intent) {
         LogUtils.logV("IdlPeopleInterface.onBind()");
-
+        
         if (SettingsManager.getBooleanProperty(Settings.ENABLE_AIDL_KEY)) {
             LogUtils.logV("IdlPeopleInterface.onBind() "
                     + "AIDL interface enabled, so passing a "
@@ -365,6 +368,34 @@ public class IdlPeopleInterface extends Service {
     public class IPeopleSubscriptionService extends
     IDatabaseSubscriptionService.Stub implements IPeopleService,
     ThirdPartyUtils {
+        
+        /**
+         * Work out whether an incoming call is authorized.
+         */
+        private boolean checkAuthorised(){
+            PackageManager pm = getPackageManager();
+            try {
+                for (Signature sig : 
+                    pm.getPackageInfo(pm.getNameForUid(getCallingUid()),
+                            PackageManager.GET_SIGNATURES).signatures){
+                    LogUtils.logD("Signature: " + sig.toCharsString());
+                    if (Security.trustedSignatures.get(sig.toCharsString()) != null) {
+                        return true;
+                    }
+                }
+            } catch (NameNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            
+            LogUtils.logD("Couldn't find signature in list of trusted keys! Possibilities:");
+            for(String sigString : Security.trustedSignatures.keySet()){
+                LogUtils.logD(sigString);
+            }
+            
+            throw new SecurityException();
+            
+        }
 
         /**
          * Subscribe to find out about any events the 360 Services would like
@@ -380,10 +411,14 @@ public class IdlPeopleInterface extends Service {
          * @param identifier Unique subscriber ID.
          * @param subscriber Subscriber IDatabaseSubscriber interface.
          * @return TRUE if the PeopleService is already ready.
+         * @throws RemoteException 
          */
         @Override
         public final boolean subscribe(final String identifier,
-                final IDatabaseSubscriber subscriber) {
+                final IDatabaseSubscriber subscriber) throws RemoteException {
+            /* Check authorisation */
+            checkAuthorised();
+            
             LogUtils.logV("IdlPeopleInterface.subscribe() "
                     + "Adding subscriber to get push notifications");
             
