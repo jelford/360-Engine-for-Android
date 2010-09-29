@@ -31,8 +31,12 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 
+import android.R;
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.DeadObjectException;
@@ -365,6 +369,20 @@ public class IdlPeopleInterface extends Service {
     public class IPeopleSubscriptionService extends
     IDatabaseSubscriptionService.Stub implements IPeopleService,
     ThirdPartyUtils {
+        
+        /** SecurityManager responsible for vetting incoming calls */
+        private final SecurityManager mSecurityManager;
+        
+        IPeopleSubscriptionService(){
+            mSecurityManager = SecurityManager.getInstance(
+                    IdlPeopleInterface.this.getApplicationContext());
+        }
+        
+
+        /**
+         * Work out whether an incoming call is authorized.
+         */
+        
 
         /**
          * Subscribe to find out about any events the 360 Services would like
@@ -380,10 +398,14 @@ public class IdlPeopleInterface extends Service {
          * @param identifier Unique subscriber ID.
          * @param subscriber Subscriber IDatabaseSubscriber interface.
          * @return TRUE if the PeopleService is already ready.
+         * @throws RemoteException 
          */
         @Override
         public final boolean subscribe(final String identifier,
                 final IDatabaseSubscriber subscriber) {
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             LogUtils.logV("IdlPeopleInterface.subscribe() "
                     + "Adding subscriber to get push notifications");
             
@@ -432,6 +454,9 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final boolean unsubscribe(final String identifier) {
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             boolean managedToUnsubscribe = false;
 
             /**
@@ -464,6 +489,10 @@ public class IdlPeopleInterface extends Service {
         @Override
         public final void checkForUpdates() {
             LogUtils.logI("IdlPeopleInterface.checkForUpdates()");
+            
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             try {
                 mPeopleService.checkForUpdates();
             } catch (NullPointerException e) {
@@ -479,6 +508,10 @@ public class IdlPeopleInterface extends Service {
         @Override
         public final void deleteIdentity(final String network,
                 final String identityId) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.deleteIdentity(network, identityId);
         }
 
@@ -487,6 +520,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void downloadMeProfileFirstTime() {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.downloadMeProfileFirstTime();
         }
 
@@ -495,6 +532,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void fetchPrivacyStatement() {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.fetchPrivacyStatement();
         }
 
@@ -503,6 +544,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void fetchTermsOfService() {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.fetchTermsOfService();
         }
 
@@ -511,6 +556,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void fetchUsernameState(final String username) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.fetchUsernameState(username);
         }
 
@@ -519,6 +568,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final ArrayList<Identity> getAvailableThirdPartyIdentities() {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             return mPeopleService.getAvailableThirdPartyIdentities();
         }
 
@@ -527,6 +580,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final boolean getLoginRequired()  {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             return mPeopleService.getLoginRequired();
         }
 
@@ -535,6 +592,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void getMoreTimelines() {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.getMoreTimelines();
         }
 
@@ -543,6 +604,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final ArrayList<Identity> getMy360AndThirdPartyChattableIdentities() {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             return mPeopleService.getMy360AndThirdPartyChattableIdentities();
         }
 
@@ -551,6 +616,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final ArrayList<Identity> getMyThirdPartyIdentities() {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             return mPeopleService.getMyThirdPartyIdentities();
         }
 
@@ -559,13 +628,21 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void getOlderStatuses() {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.getOlderStatuses();
         }
         
         /**
          * @see com.vodafone360.people.database.tables
          */
-        public int getPresence(final long localContactID){
+        public int getPresence(final long localContactID) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             return com.vodafone360.people.database.tables.ContactSummaryTable.
                         getPresence(localContactID).ordinal();
         }
@@ -575,6 +652,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void getPresenceList(final long contactId) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.getPresenceList(contactId);
 
         }
@@ -584,6 +665,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final boolean getRoamingDeviceSetting() {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             return mPeopleService.getRoamingDeviceSetting();
         }
 
@@ -592,6 +677,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final int getRoamingNotificationType() {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             return mPeopleService.getRoamingNotificationType();
         }
 
@@ -600,6 +689,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void getStatuses() {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.getStatuses();
         }
 
@@ -613,6 +706,10 @@ public class IdlPeopleInterface extends Service {
         public User getUserPresenceStatusByLocalContactId(long localContactId) {
             LogUtils.logV("IdlPeopleInterface.getUserPresenceStatusByLocalContactId() "
                     + "(localContactId: " + localContactId + ")");
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             return PresenceDbUtils.getUserPresenceStatusByLocalContactId(
                     localContactId, mApplication.getDatabase());
         }
@@ -623,6 +720,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void logon(final LoginDetails loginDetails) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.logon(loginDetails);
         }
 
@@ -632,6 +733,10 @@ public class IdlPeopleInterface extends Service {
          * internal classes and AIDL don't work together correctly.
          */
         public void notifyDataSettingChanged(int internetAvail) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             notifyDataSettingChanged(
                     PersistSettings.InternetAvail.values()[internetAvail]);
         }
@@ -641,6 +746,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void pingUserActivity() {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.pingUserActivity();
         }
 
@@ -649,6 +758,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void register(final RegistrationDetails details) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.register(details);
         }
 
@@ -659,6 +772,10 @@ public class IdlPeopleInterface extends Service {
         public final void sendMessage(final long toLocalContactId,
                 final String body, final int socialNetworkId) {
             LogUtils.logI("IdlPeopleInterface.sendMessage()");
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             try {
                 mPeopleService.sendMessage(toLocalContactId, body, socialNetworkId);
             } catch (ArrayIndexOutOfBoundsException e) {
@@ -680,6 +797,10 @@ public class IdlPeopleInterface extends Service {
          * internal classes and AIDL don't work together correctly.
          */
         public void setAvailability(final int status) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             setAvailability(ContactSummary.OnlineStatus.values()[status]);
         }
 
@@ -690,6 +811,10 @@ public class IdlPeopleInterface extends Service {
         @Override
         public final void setAvailability(
                 final Hashtable<String, String> status) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.setAvailability(status);
         }
 
@@ -698,6 +823,10 @@ public class IdlPeopleInterface extends Service {
          * Not yet supported, as function overloading is not supported in AIDL.
          */
         public void setAvailability(int network, int status) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             setAvailability(SocialNetwork.values()[network],
                     OnlineStatus.values()[status]);
         }
@@ -708,6 +837,10 @@ public class IdlPeopleInterface extends Service {
         @Override
         public final void setIdentityStatus(final String network,
                 final String identityId, final boolean identityStatus) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.setIdentityStatus(network, identityId,
                     identityStatus);
         }
@@ -717,6 +850,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void setNewUpdateFrequency() {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.setNewUpdateFrequency();
         }
 
@@ -726,6 +863,10 @@ public class IdlPeopleInterface extends Service {
         @Override
         public final void setShowRoamingNotificationAgain(
                 final boolean showAgain) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.setShowRoamingNotificationAgain(showAgain);
         }
 
@@ -734,6 +875,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void startBackgroundContactSync(final long delay) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.startBackgroundContactSync(delay);
         }
 
@@ -742,6 +887,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void startContactSync() {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.startContactSync();
         }
 
@@ -750,6 +899,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void startStatusesSync() {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.startStatusesSync();
         }
 
@@ -758,6 +911,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void updateChatNotification(final long localContactId) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.updateChatNotification(localContactId);
         }
 
@@ -766,6 +923,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void uploadMeProfile() {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.uploadMeProfile();
         }
 
@@ -774,6 +935,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void uploadMyStatus(final String statusText) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.uploadMyStatus(statusText);
         }
 
@@ -784,6 +949,10 @@ public class IdlPeopleInterface extends Service {
         public final void validateIdentityCredentials(final boolean dryRun,
                 final String network, final String username,
                 final String password, final Bundle identityCapabilityStatus) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.validateIdentityCredentials(dryRun, network, username,
                     password, identityCapabilityStatus);
         }
@@ -796,6 +965,10 @@ public class IdlPeopleInterface extends Service {
         @Override
         public final void notifyDataSettingChanged(
                 final InternetAvail internetAvail) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.notifyDataSettingChanged(internetAvail);
         }
 
@@ -804,6 +977,10 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final void setAvailability(final OnlineStatus status) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.setAvailability(status);
         }
 
@@ -814,6 +991,10 @@ public class IdlPeopleInterface extends Service {
          */
         public final void setAvailability(final SocialNetwork network,
                 final OnlineStatus  status) {
+
+            /* Check authorisation */
+            mSecurityManager.checkAuthorised();
+            
             mPeopleService.setAvailability(network, status);
         }
 
