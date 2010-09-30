@@ -31,6 +31,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 
+import android.R;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -328,7 +329,7 @@ public class IdlPeopleInterface extends Service {
     @Override
     public final synchronized IBinder onBind(final Intent intent) {
         LogUtils.logV("IdlPeopleInterface.onBind()");
-        
+
         if (SettingsManager.getBooleanProperty(Settings.ENABLE_AIDL_KEY)) {
             LogUtils.logV("IdlPeopleInterface.onBind() "
                     + "AIDL interface enabled, so passing a "
@@ -368,7 +369,7 @@ public class IdlPeopleInterface extends Service {
     public class IPeopleSubscriptionService extends
     IDatabaseSubscriptionService.Stub implements IPeopleService,
     ThirdPartyUtils {
-        
+
         /**
          * Work out whether an incoming call is authorized.
          */
@@ -381,20 +382,22 @@ public class IdlPeopleInterface extends Service {
                  */
                 for (Signature sig : 
                     pm.getPackageInfo(pm.getNameForUid(getCallingUid()),
-                            PackageManager.GET_SIGNATURES).signatures){
-                    if (Security.trustedSignatures.get(sig.toCharsString()) 
-                            != null) {
+                            PackageManager.GET_SIGNATURES).signatures) {
+                    if (Security.trustedSignatures
+                            .contains(sig.toCharsString())) {
                         return true;
                     }
                 }
+                
             } catch (NameNotFoundException e) {
                 LogUtils.logE("Couldn't find the package that called IPC call" +
                 		" in 360 People IPC service", e);
             }
 
             /* This may crash the caller if their signature wasn't recognised */
-            throw new SecurityException();
-            
+            throw new SecurityException("Incoming caller is not signed by " +
+            		"a trusted public key.");
+
         }
 
         /**
@@ -415,7 +418,7 @@ public class IdlPeopleInterface extends Service {
          */
         @Override
         public final boolean subscribe(final String identifier,
-                final IDatabaseSubscriber subscriber) throws RemoteException {
+                final IDatabaseSubscriber subscriber) {
             /* Check authorisation */
             checkAuthorised();
             
