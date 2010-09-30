@@ -375,7 +375,7 @@ public class IdlPeopleInterface extends Service {
         
         IPeopleSubscriptionService(){
             mSecurityManager = SecurityManager.getInstance(
-                    IdlPeopleInterface.this.getApplicationContext(), this);
+                    IdlPeopleInterface.this.getApplicationContext());
         }
         
 
